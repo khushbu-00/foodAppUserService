@@ -23,58 +23,62 @@ import jakarta.transaction.Transactional;
 		
 		
 		@Autowired
-		UserRepository userrepository;
+		UserRepository userRepository;
 
 		@Override
 		public User registerUser(User users) {
-			return userrepository.save(users);
+			
+			if(userRepository.findByEmail(users.getEmail()).isPresent()) {
+				throw new InvalidUserDataException("User Already Exists With Email:" + users.getEmail());
+			}
+			return userRepository.save(users);
 		}
 
 		@Override
 		public User getUserById(Integer id) {
-			return userrepository.findById(id).orElseThrow(() -> new UserNotFoundException("User Not Found"));
+			return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User Not Found"));
 		}
 
 		@Override
 		public List<User> getAllUsers() {
-			return userrepository.findAll();
+			return userRepository.findAll();
 		}
 
 		@Override
 		public User updateUser(Integer id, User user) {
-			User existingUser = userrepository.findById(id)
-					.orElseThrow(() -> new InvalidUserDataException("Invalid User Data :" + id));
+			User existingUser = userRepository.findById(id)
+					.orElseThrow(() -> new UserNotFoundException("User Not Found With Id :" + id));
 			existingUser.setName(user.getName());
 			existingUser.setEmail(user.getEmail());
 			existingUser.setPhonenumber(user.getPhonenumber());
 			existingUser.setAddress(user.getAddress());
 
-			return userrepository.save(existingUser);
+			return userRepository.save(existingUser);
 		}
 
 		@Override
 		public User deleteUser(Integer id) {
-			User extistingUser = userrepository.findById(id).orElseThrow(() -> new UserNotFoundException("User Not Found"));
-			userrepository.delete(extistingUser);
+			User extistingUser = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User Not Found"));
+			userRepository.delete(extistingUser);
 			return extistingUser;
 		}
 
 		@Override
 		public User getUserByEmail(String email) {
-			return userrepository.findByEmail(email)
+			return userRepository.findByEmail(email)
 					.orElseThrow(() -> new UserNotFoundException("User not Found with email:" + email));
 
 		}
 
 		@Override
 		public User getUserByPhoneNumber(String phonenumber) {
-			return userrepository.findByPhonenumber(phonenumber)
+			return userRepository.findByPhonenumber(phonenumber)
 					.orElseThrow(() -> new UserNotFoundException("User not Found with phonenumber:"+phonenumber));
 		}
-
+		
 		@Override
 		public List<User> getUserByName(String name) {
-			List<User> users= userrepository.findUserByName(name);
+			List<User> users= userRepository.findByName(name);
 			if(users.isEmpty()) {
 				throw new UserNotFoundException("User Not Found With Name :"+name);
 			}
@@ -84,11 +88,11 @@ import jakarta.transaction.Transactional;
 		}
 		
 		//------- for orders ---------
-		
+		@Override
 		public List<OrderDTO> getAllOrders(){
-			return orderClient.getAllOrders();
-		}
-		
+			return orderClient.allOrders();
+	}
+	
 
 	}
 

@@ -15,6 +15,6 @@ import com.foodapp.entity.User;
 
 		Optional<User> findByPhonenumber(String phonenumber);
 
-		List<User> findUserByName(String name);
+		List<User> findByName(String name);
 		
 	}

@@ -17,6 +17,6 @@ public class OrderDTO {
 	private int quantity;
 	private float totalAmount;
 	private String status;
-	private LocalDate orderdate;
+	private LocalDate orderDate;
 
 }

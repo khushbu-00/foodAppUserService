@@ -3,9 +3,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.foodapp.dto.OrderDTO;
 import com.foodapp.entity.User;
+import com.foodapp.feign.OrderClient;
 import com.foodapp.service.UserService;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 
 import java.util.List;
 
@@ -15,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,81 +28,86 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+
+@Validated
 @RestController
-@RequestMapping("/users")
+@RequestMapping("foodapp/users")
 public class UserController {
 	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
-	private UserService userservice;
+	private UserService userService;
+	
+	@Autowired
+	private OrderClient orderClient;
 
-	public UserController() {
-		System.out.println("-----Ready to exceute----");
-	}
+//	public UserController() {
+//		System.out.println("-----Ready to exceute----");
+//	}
 	
     @Transactional
-	@PostMapping("")
-	public ResponseEntity<User> registerUser(@RequestBody User users) {
+	@PostMapping("/register")
+	public ResponseEntity<User> registerUser(@Valid @RequestBody User users) {
 
 		logger.info("Create user Request API CAlled");
-		User savedRegisterUser = userservice.registerUser(users);
+		User savedRegisterUser = userService.registerUser(users);
 		return new ResponseEntity<>(savedRegisterUser, HttpStatus.CREATED);
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/userId/{id}")                                    //admin
 	public ResponseEntity<User> getUserById(@PathVariable Integer id) {
-		logger.info("Status API Called for Request Id{}");
-		return ResponseEntity.ok(userservice.getUserById(id));
+		logger.info("Status API Called for Request Id{}",id);
+		return ResponseEntity.ok(userService.getUserById(id));
 
 	}
 
-	@GetMapping("")
+	@GetMapping("/all")                                                 //admin
 	public ResponseEntity<List<User>> getAllUsers() {
 		logger.info("Status API Called for All Users");
-		return ResponseEntity.ok(userservice.getAllUsers());
+		return ResponseEntity.ok(userService.getAllUsers());
 
 	}
 
-	@PutMapping("/{id}")
-	public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user) {
+	@PutMapping("update/{id}")                                        //admin
+	public ResponseEntity<User> updateUser(@PathVariable Integer id, @Valid @RequestBody User user) {
 		logger.info("Status API Called for All updateUsers");
-		return ResponseEntity.ok(userservice.updateUser(id, user));
+		return ResponseEntity.ok(userService.updateUser(id, user));
 	}
 	
-	@DeleteMapping("/{id}")
+	@DeleteMapping("/delete/{id}")                                         //admin
 	public ResponseEntity<String> deleteUser(@PathVariable Integer id){
-		logger.info("Delete user with id");
-	userservice.deleteUser(id);
+		logger.info("Delete user with id {}",id);
+	userService.deleteUser(id);
 	return ResponseEntity.ok("User Deleted Successfully");
 	
 	}
 	
-	@GetMapping("/email/{email}")
-	public ResponseEntity<User> getUserByEmail(@PathVariable String email){
+	@GetMapping("/email/{email}")                                            //admin
+	public ResponseEntity<User> getUserByEmail(@PathVariable @Email(message="Invalid Email Format" ) String email){
 		logger.info("Status API Called for UserbyEmail");
-		return ResponseEntity.ok(userservice.getUserByEmail(email));
+		return ResponseEntity.ok(userService.getUserByEmail(email));
 	}
 	
-	@GetMapping("phone/{phone}")
+	@GetMapping("phone/{phonenumber}")                                   //admin
 	public ResponseEntity<User> getUserByPhoneNumber(@PathVariable String phonenumber){
 		logger.info("Status API Called for UserbyPhoneNumber");
-		return ResponseEntity.ok(userservice.getUserByPhoneNumber(phonenumber));
+		return ResponseEntity.ok(userService.getUserByPhoneNumber(phonenumber));
 	}
 	
-	@GetMapping("/name/{name}")
+	@GetMapping("/name/{name}")                                 //admin
 	public ResponseEntity <List<User>> getUserByName(@PathVariable String name){
 		logger.info("Status API Called for UserbyName");
-		return ResponseEntity.ok(userservice.getUserByName(name));
+		return ResponseEntity.ok(userService.getUserByName(name));
 	}
 	
 	
 	
 	//------> for orders------>
 	
-	@GetMapping("orders")
-	public ResponseEntity<List<OrderDTO>> getAllOrders(){
+	@GetMapping("/orders")
+	public ResponseEntity<List<OrderDTO>> allOrders(){
 		logger.info("Status API Called for getAllOrders Of Users");
-		return ResponseEntity.ok(userservice.getAllOrders());
+		return ResponseEntity.ok(orderClient.allOrders());
 		
 	}
 }
